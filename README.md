@@ -1,5 +1,7 @@
 # Code Sprint
 
+Live app: **[Code Sprint](https://code-sprint-tfsqltds4q-uc.a.run.app)** — project `programming-club-509316`, region `us-central1`.
+
 A deployable C++ typing competition app for programming clubs. Create a round, share its unique `/c/abcde` URL, and let competitors join by name. Each competitor starts independently. Timing begins with their first typed character (including an incorrect character) and stops on the final correct character. Results and the leaderboard persist. New links use five lowercase letters/digits, excluding easily confused characters. Collisions are retried atomically without overwriting existing rounds. Existing GUID links continue to work.
 
 ## Run locally
@@ -42,7 +44,7 @@ terraform output -raw app_url
 terraform output -raw organizer_key_command
 ```
 
-See the [deployment guide](infra/README.md) for prerequisites, updates, existing-resource imports, key rotation, state security, and cleanup. Terraform state contains the generated secret and must stay private. Cloud resources have not been provisioned by this repository.
+See the [deployment guide](infra/README.md) for prerequisites, updates, existing-resource imports, key rotation, state security, and cleanup. Terraform state contains the generated secret and must stay private. The current deployment was provisioned with this stack and verified with a live create/join/type/save/reload test. Terraform reports no pending changes.
 
 Firestore stores `competitions/{id}` and `competitions/{id}/attempts/{attemptId}`. Completed attempts include the display name, duration, score, error count, and completion time. Cloud Run uses Firestore exclusively; local SQLite is refused on Cloud Run because its filesystem is ephemeral. Application errors go to Cloud Logging. Records have no automatic expiry; deleting a competition also requires deleting its attempts subcollection.
 
