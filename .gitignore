@@ -1,0 +1,23 @@
+node_modules/
+data/
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
+.DS_Store
+
+# Contest source material is not part of the application.
+problems/
+
+# Terraform state, credentials, plans, and local settings.
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+__pycache__/
+*.pyc

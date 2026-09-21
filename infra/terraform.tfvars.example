@@ -1,0 +1,6 @@
+project_id = "your-project-id"
+region     = "us-central1"
+# firestore_location = "nam5" # Set only if a different location is needed.
+# max_instances = 3
+# image_revision = "2" # Force rebuild to refresh base image/dependencies.
+# organizer_key_revision = "2" # Rotate the generated organizer key.

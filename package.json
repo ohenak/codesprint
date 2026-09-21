@@ -1,0 +1,25 @@
+{
+  "name": "code-sprint",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "C++ typing competitions for programming clubs",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/*.test.js",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^9.2.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

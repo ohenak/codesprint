@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "attempts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "completed", "order": "ASCENDING" },
+        { "fieldPath": "wpm", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

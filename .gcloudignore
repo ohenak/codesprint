@@ -1,0 +1,14 @@
+.gcloudignore
+.git
+node_modules
+data
+test-results
+playwright-report
+problems
+.env
+.env.*
+
+infra
+*.tfstate*
+*.tfvars*
+*.tfplan
