@@ -2,7 +2,8 @@ mock_provider "google" {}
 mock_provider "random" {}
 
 variables {
-  project_id = "code-sprint-test"
+  project_id    = "code-sprint-test"
+  custom_domain = "codesprint.example.com"
 }
 
 run "deployment_contract" {
@@ -39,5 +40,9 @@ run "deployment_contract" {
   assert {
     condition     = random_password.organizer.length >= 24 && google_project_iam_member.runtime_firestore.role == "roles/datastore.user"
     error_message = "Provide organizer authentication and Firestore access."
+  }
+  assert {
+    condition     = google_cloud_run_domain_mapping.app[0].name == "codesprint.example.com" && google_cloud_run_domain_mapping.app[0].spec[0].route_name == google_cloud_run_v2_service.app.name
+    error_message = "Map the verified custom domain to the deployed Cloud Run service."
   }
 }

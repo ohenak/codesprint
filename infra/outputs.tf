@@ -12,3 +12,13 @@ output "organizer_key_command" {
   description = "Run privately to retrieve the organizer key. No secret is printed by Terraform outputs."
   value       = "gcloud secrets versions access ${google_secret_manager_secret_version.organizer.version} --secret=${google_secret_manager_secret.organizer.secret_id} --project=${var.project_id}"
 }
+
+output "custom_url" {
+  description = "Custom public URL when custom_domain is configured."
+  value       = var.custom_domain == null ? null : "https://${var.custom_domain}"
+}
+
+output "custom_domain_dns_records" {
+  description = "DNS records to add at the external DNS provider. Empty until a custom domain is configured."
+  value       = var.custom_domain == null ? [] : google_cloud_run_domain_mapping.app[0].status[0].resource_records
+}

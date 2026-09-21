@@ -16,12 +16,23 @@ gcloud auth application-default login
 cd infra
 cp terraform.tfvars.example terraform.tfvars
 # Edit terraform.tfvars and set project_id and region.
+# Optionally set custom_domain after verifying it with Google.
 terraform init
 terraform plan -out=deploy.tfplan
 terraform apply deploy.tfplan
 terraform output -raw app_url
 terraform output -raw organizer_key_command
 ```
+
+If `custom_domain` is set, Terraform creates the Cloud Run mapping but does not
+edit DNS hosted outside GCP. After apply, run
+`terraform output -json custom_domain_dns_records`, add the returned records at
+your DNS provider, and keep the generated `run.app` URL as a rollback path.
+Google provisions and renews TLS after DNS resolves; issuance can take several
+minutes and occasionally up to 24 hours. Direct Cloud Run domain mapping is a
+Google preview feature and is intended here as the smallest configuration for a
+club app; a global external Application Load Balancer is the documented
+production alternative if its limitations become material.
 
 Run the printed organizer-key command privately; enter that key in the app's competition creation form. Competitors only need their competition link.
 

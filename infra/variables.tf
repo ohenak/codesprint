@@ -50,3 +50,14 @@ variable "organizer_key_revision" {
   type        = string
   default     = "1"
 }
+
+variable "custom_domain" {
+  description = "Verified custom domain to map to Cloud Run. Null leaves only the generated run.app URL."
+  type        = string
+  default     = null
+  nullable    = true
+  validation {
+    condition     = var.custom_domain == null || can(regex("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$", var.custom_domain))
+    error_message = "Use a lowercase fully qualified domain name, such as codesprint.example.com."
+  }
+}
