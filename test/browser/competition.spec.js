@@ -15,8 +15,12 @@ test('full competition flow, first wrong key starts clock, last character saves 
   await page.getByRole('button', { name: 'Join round' }).click();
   const input = page.locator('#typing-input');
   await expect(input).toBeEnabled();
+  await expect(page.locator('#stats-bar')).toBeHidden();
+  await expect(page.locator('#leaderboard-panel')).toBeHidden();
   await expect(page.locator('#time')).toHaveText('00:00.0');
   await input.press('x');
+  await expect(page.locator('#stats-bar')).toBeHidden();
+  await expect(page.locator('#leaderboard-panel')).toBeHidden();
   await expect(page.locator('#time')).not.toHaveText('00:00.0');
   await expect(page.locator('#progress')).toHaveText('0%');
   await input.pressSequentially('int main() {', { delay: 15 });
@@ -24,8 +28,12 @@ test('full competition flow, first wrong key starts clock, last character saves 
   await input.pressSequentially('return 0;', { delay: 15 });
   await input.press('Enter');
   await expect(page.locator('#race-status')).toHaveText('SPRINT IN PROGRESS');
+  await expect(page.locator('#stats-bar')).toBeHidden();
+  await expect(page.locator('#leaderboard-panel')).toBeHidden();
   await input.press('}');
   await expect(page.locator('#result')).toContainText('RESULT SAVED');
+  await expect(page.locator('#stats-bar')).toBeVisible();
+  await expect(page.locator('#leaderboard-panel')).toBeVisible();
   await expect(page.locator('#progress')).toHaveText('100%');
   await expect(page.locator('#result')).toContainText('1 incorrect keystrokes');
   await expect(page.locator('#board tbody tr')).toHaveCount(1);
@@ -34,7 +42,8 @@ test('full competition flow, first wrong key starts clock, last character saves 
   await page.waitForTimeout(250);
   await expect(page.locator('#time')).toHaveText(time);
   await page.reload();
-  await expect(page.locator('#board')).toContainText('Ada <script>');
+  await expect(page.locator('#stats-bar')).toBeHidden();
+  await expect(page.locator('#leaderboard-panel')).toBeHidden();
   expect(errors).toEqual([]);
 });
 
@@ -73,6 +82,8 @@ test('auto-indent handles first line, mixed tabs, nested blocks and blank lines 
   await page.getByRole('button', { name: 'Join round' }).click();
   const input = page.locator('#typing-input');
   await expect(input).toBeEnabled();
+  await expect(page.locator('#stats-bar')).toBeHidden();
+  await expect(page.locator('#leaderboard-panel')).toBeHidden();
   await expect(page.locator('#target .cursor')).toHaveText('i');
   await expect(page.locator('#time')).toHaveText('00:00.0');
   await expect(page.locator('#progress')).toHaveText('0%');
@@ -86,12 +97,16 @@ test('auto-indent handles first line, mixed tabs, nested blocks and blank lines 
   const saved = await finishResponse.json();
   const measuredDuration = finishResponse.request().postDataJSON().durationMs;
   await expect(page.locator('#result')).toContainText('RESULT SAVED');
+  await expect(page.locator('#stats-bar')).toBeVisible();
+  await expect(page.locator('#leaderboard-panel')).toBeVisible();
   await expect(page.locator('#progress')).toHaveText('100%');
   await expect(page.locator('#accuracy')).toHaveText('100%');
   expect(saved.errors).toBe(0);
   expect(saved.cpm).toBe(Math.round(manualText.length / (measuredDuration / 60000)));
   await page.getByRole('button', { name: 'Start a new attempt' }).click();
   await expect(input).toBeEnabled();
+  await expect(page.locator('#stats-bar')).toBeHidden();
+  await expect(page.locator('#leaderboard-panel')).toBeHidden();
   await expect(page.locator('#target .cursor')).toHaveText('i');
   await expect(page.locator('#progress')).toHaveText('0%');
   await expect(page.locator('#time')).toHaveText('00:00.0');

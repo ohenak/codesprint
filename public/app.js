@@ -55,11 +55,11 @@ async function competitionPage(id) {
   const competition = await api(base);
   document.title = `${competition.title} — Code Sprint`;
   app.innerHTML = `<section class="round-heading"><a href="/" class="back-link">← All new sprints start here</a><div class="round-title"><div><div class="eyebrow"><span class="dot">●</span> C++ TYPING COMPETITION</div><h1>${escape(competition.title)}</h1><p>${typedCharacterCount(competition.text)} characters to type · ${competition.text.split('\n').length} lines · Start whenever you’re ready</p></div><button id="share" class="secondary">Copy competition link ↗</button></div><p id="share-status" class="field-hint" role="status">${new URLSearchParams(location.search).has('created') ? 'Your competition is ready. Share the link to invite your club.' : ''}</p></section>
-  <div class="round-grid"><section class="race-column"><div class="panel join-panel" id="join-panel"><div><span class="eyebrow muted">TAKE YOUR PLACE</span><h2>Ready to sprint?</h2><p>Enter your name to join this round.</p></div><form id="join-form"><label class="sr-only" for="name">Your name</label><div class="join-input"><input id="name" maxlength="40" required placeholder="Your name" autocomplete="nickname"><button class="primary" id="join-button">Join round →</button></div><p class="field-hint">Your name and results will be visible to everyone with this link.</p><p id="join-error" class="error" role="alert"></p></form></div>
-  <div class="stats-bar"><div><span>TIME</span><strong id="time">00:00.0</strong></div><div><span>WORDS / MIN</span><strong id="wpm">0</strong></div><div><span>ACCURACY</span><strong id="accuracy">100<span>%</span></strong></div><div><span>PROGRESS</span><strong id="progress">0<span>%</span></strong></div></div>
+  <div class="round-grid metrics-hidden" id="round-grid"><section class="race-column"><div class="panel join-panel" id="join-panel"><div><span class="eyebrow muted">TAKE YOUR PLACE</span><h2>Ready to sprint?</h2><p>Enter your name to join this round.</p></div><form id="join-form"><label class="sr-only" for="name">Your name</label><div class="join-input"><input id="name" maxlength="40" required placeholder="Your name" autocomplete="nickname"><button class="primary" id="join-button">Join round →</button></div><p class="field-hint">Your name and results will be visible to everyone with this link.</p><p id="join-error" class="error" role="alert"></p></form></div>
+  <div class="stats-bar" id="stats-bar" hidden><div><span>TIME</span><strong id="time">00:00.0</strong></div><div><span>WORDS / MIN</span><strong id="wpm">0</strong></div><div><span>ACCURACY</span><strong id="accuracy">100<span>%</span></strong></div><div><span>PROGRESS</span><strong id="progress">0<span>%</span></strong></div></div>
   <div class="panel typing-panel"><div class="editor-bar"><span class="language">C++</span><span>challenge.cpp</span><span id="race-status">JOIN TO BEGIN</span></div><div class="typing-code" id="target" aria-label="Target C++ code"></div><div class="typing-entry"><label for="typing-input" id="typing-label">Join the round above to unlock your keyboard.</label><textarea id="typing-input" rows="2" disabled spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" aria-describedby="typing-help" placeholder="Type here…"></textarea></div><div class="editor-footer" id="typing-help">Indentation is automatic. Enter = new line. Correct each mistake to advance. Paste is disabled.</div></div>
   <p id="race-error" class="error" role="alert"></p><div id="result" aria-live="polite"></div><div class="race-actions"><button id="restart" class="secondary" hidden>Start a new attempt ↻</button><span id="focus-hint" class="field-hint">No countdown. Your first character starts the clock.</span></div></section>
-  <aside class="panel leaderboard"><div class="board-title"><div><span class="eyebrow muted">THE SCOREBOARD</span><h2>Leaderboard</h2></div><span class="live-dot" title="Refreshes every 10 seconds"></span></div><p class="field-hint">Top 100 attempts · ranked by WPM</p><div id="board" aria-live="polite"></div><p id="board-error" class="error" role="status"></p><div class="board-note">Every finish counts.<br>Try again and beat your best.</div></aside></div>`;
+  <aside class="panel leaderboard" id="leaderboard-panel" hidden><div class="board-title"><div><span class="eyebrow muted">THE SCOREBOARD</span><h2>Leaderboard</h2></div><span class="live-dot" title="Refreshes every 10 seconds"></span></div><p class="field-hint">Top 100 attempts · ranked by WPM</p><div id="board" aria-live="polite"></div><p id="board-error" class="error" role="status"></p><div class="board-note">Every finish counts.<br>Try again and beat your best.</div></aside></div>`;
   document.querySelector('#share').addEventListener('click', async () => {
     const link = `${location.origin}/c/${id}`;
     try { await navigator.clipboard.writeText(link); errorText('share-status', 'Link copied. Send it to your competitors!'); }
@@ -69,6 +69,9 @@ async function competitionPage(id) {
   const input = document.querySelector('#typing-input');
   const target = document.querySelector('#target');
   const restart = document.querySelector('#restart');
+  const roundGrid = document.querySelector('#round-grid');
+  const statsBar = document.querySelector('#stats-bar');
+  const leaderboardPanel = document.querySelector('#leaderboard-panel');
   const spans = [...competition.text].map((char, i) => {
     const span = document.createElement('span');
     span.textContent = char === '\n' ? '↵\n' : char === '\t' ? '→   ' : char;
@@ -85,6 +88,18 @@ async function competitionPage(id) {
     document.querySelector('#wpm').textContent = duration > 0 ? Math.round(typedCharacters / 5 / (duration / 60000)) : 0;
     document.querySelector('#accuracy').textContent = `${typedCharacters + errors ? Math.round(typedCharacters / (typedCharacters + errors) * 100) : 100}%`;
     document.querySelector('#progress').textContent = `${Math.floor(typedCharacters / typedCharacterCount(competition.text) * 100)}%`;
+  }
+  function hideMetrics() {
+    statsBar.hidden = true;
+    leaderboardPanel.hidden = true;
+    roundGrid.classList.add('metrics-hidden');
+  }
+  function revealMetrics() {
+    renderStats();
+    statsBar.hidden = false;
+    leaderboardPanel.hidden = false;
+    roundGrid.classList.remove('metrics-hidden');
+    leaderboard();
   }
   const timer = setInterval(() => { if (started !== null && ended === null) renderStats(); }, 100);
   const authorization = () => ({ Authorization: `Bearer ${attempt.token}` });
@@ -105,6 +120,7 @@ async function competitionPage(id) {
       document.querySelector('#typing-label').textContent = `You're in, ${document.querySelector('#name').value.trim()}. Type the first character to start.`;
       document.querySelector('#race-status').textContent = 'READY WHEN YOU ARE';
       document.querySelector('#focus-hint').textContent = 'No countdown. Your first character starts the clock.';
+      hideMetrics();
       renderStats();
     } catch (error) { errorText('race-error', error.message); }
     finally { button.disabled = false; restart.disabled = false; }
@@ -151,7 +167,9 @@ async function competitionPage(id) {
     }
     if (position === competition.text.length) {
       ended = performance.now(); input.disabled = true;
-      document.querySelector('#race-status').textContent = 'FINISHED'; save();
+      document.querySelector('#race-status').textContent = 'FINISHED';
+      revealMetrics();
+      save();
     }
     renderStats();
   }
@@ -178,8 +196,7 @@ async function competitionPage(id) {
       errorText('board-error', '');
     } catch { errorText('board-error', 'Leaderboard unavailable. We’ll retry automatically.'); }
   }
-  await leaderboard();
-  const poll = setInterval(() => { if (!document.hidden) leaderboard(); }, 10000);
+  const poll = setInterval(() => { if (ended !== null && !document.hidden) leaderboard(); }, 10000);
   addEventListener('beforeunload', event => {
     if ((started !== null && ended === null) || (ended !== null && !currentResult)) { event.preventDefault(); event.returnValue = ''; }
   });
